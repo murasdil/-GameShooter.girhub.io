@@ -1,0 +1,187 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<c2project>
+    <name>норм</name>
+    <description></description>
+    <version>1.0.0.0</version>
+    <author></author>
+    <author-email></author-email>
+    <author-website>http://</author-website>
+    <app-id>com.mycompany.myapp</app-id>
+    <unique-id>2m93x0y73bj9i</unique-id>
+    <saved-with-version>27700</saved-with-version>
+    <used-plugins>
+        <plugin author="Scirra" id="Keyboard" version="1">Keyboard</plugin>
+        <plugin author="Scirra" id="Mouse" version="1">Mouse</plugin>
+        <plugin author="Scirra" id="Sprite" version="1">Sprite</plugin>
+        <plugin author="Scirra" id="Text" version="1">Text</plugin>
+        <plugin author="Scirra" id="TiledBg" version="1">Tiled Background</plugin>
+    </used-plugins>
+    <used-behaviors>
+        <behavior author="Scirra" id="Bullet" version="1">Bullet</behavior>
+        <behavior author="Scirra" id="EightDir" version="1">8 Direction</behavior>
+        <behavior author="Scirra" id="Fade" version="1">Fade</behavior>
+    </used-behaviors>
+    <used-effects />
+    <configurations>
+        <configuration exporter-descname="HTML5" exporter-id="html5" name="HTML5" />
+    </configurations>
+    <window-size>
+        <width>854</width>
+        <height>480</height>
+    </window-size>
+    <pixel-rounding>0</pixel-rounding>
+    <preview-effects>1</preview-effects>
+    <use-loader-layout>0</use-loader-layout>
+    <configuration-settings>
+        <prop name="Clear background">Yes</prop>
+        <prop name="Downscaling">Medium quality</prop>
+        <prop name="Enable WebGL">On</prop>
+        <prop name="Fullscreen in browser">Letterbox scale</prop>
+        <prop name="Fullscreen scaling">High quality</prop>
+        <prop name="Loader style">Construct 2 splash</prop>
+        <prop name="Orientations">Any</prop>
+        <prop name="Pause on unfocus">No</prop>
+        <prop name="Physics engine">Box2D asm.js</prop>
+        <prop name="Preload sounds">Yes</prop>
+        <prop name="Preview browser">(default)</prop>
+        <prop name="Sampling">Linear</prop>
+        <prop name="Use high-DPI display">Yes</prop>
+    </configuration-settings>
+    <object-folder>
+        <object-type name="Background" sid="847614608624460">
+            <plugin id="TiledBg" />
+            <texture original-source="D:\Users\User\Desktop\1 Лига роботов\Cunstruct 2\1 урок\unnamed.jpg" />
+        </object-type>
+        <object-type name="Player" sid="632531292700993">
+            <plugin id="Sprite" />
+            <instance-variables>
+                <instance-variable name="health" sid="667750242173293" type="number" />
+            </instance-variables>
+            <behaviors>
+                <behavior-type name="8Direction" sid="363696494661332">
+                    <behavior id="EightDir" />
+                </behavior-type>
+            </behaviors>
+            <animation-folder>
+                <animation framecount="1" loop="0" name="Новая" pingpong="0" repeatcount="1" repeatto="0" sid="973422680844941" speed="5">
+                    <frame duration="1" hotspotX="0.5" hotspotY="0.504854" original-source="D:\Users\User\Desktop\1 Лига роботов\Cunstruct 2\1 урок\player.png">
+                        <image-point name="Pistol" x="0.898148" y="0.504854" />
+                        <collision-poly>
+                            <point x="0.240741" y="0.252427" />
+                            <point x="0.5" y="0.0776699" />
+                            <point x="0.685185" y="0.330097" />
+                            <point x="0.944444" y="0.495146" />
+                            <point x="0.703704" y="0.68932" />
+                            <point x="0.5" y="0.961165" />
+                            <point x="0.194444" y="0.796117" />
+                            <point x="0.0462963" y="0.495146" />
+                        </collision-poly>
+                    </frame>
+                </animation>
+            </animation-folder>
+        </object-type>
+        <object-type name="Mouse" sid="800663317717299">
+            <plugin id="Mouse" />
+        </object-type>
+        <object-type name="Keyboard" sid="641626666818299">
+            <plugin id="Keyboard" />
+        </object-type>
+        <object-type name="Bullet" sid="458888816961556">
+            <plugin id="Sprite" />
+            <behaviors>
+                <behavior-type name="Bullet" sid="553064271656146">
+                    <behavior id="Bullet" />
+                </behavior-type>
+            </behaviors>
+            <animation-folder>
+                <animation framecount="1" loop="0" name="Новая" pingpong="0" repeatcount="1" repeatto="0" sid="901794091649790" speed="5">
+                    <frame duration="1" hotspotX="0.52" hotspotY="0.5" original-source="D:\Users\User\Desktop\1 Лига роботов\Cunstruct 2\1 урок\bullet.png">
+                        <collision-poly>
+                            <point x="0.16" y="0.25" />
+                            <point x="0.48" y="0.25" />
+                            <point x="0.8" y="0.3125" />
+                            <point x="0.92" y="0.5" />
+                            <point x="0.8" y="0.6875" />
+                            <point x="0.48" y="0.75" />
+                            <point x="0.16" y="0.75" />
+                            <point x="0.08" y="0.5" />
+                        </collision-poly>
+                    </frame>
+                </animation>
+            </animation-folder>
+        </object-type>
+        <object-type name="Monster" sid="469568446045027">
+            <plugin id="Sprite" />
+            <instance-variables>
+                <instance-variable name="Health" sid="718720296400458" type="number" />
+            </instance-variables>
+            <behaviors>
+                <behavior-type name="Bullet" sid="507894369071085">
+                    <behavior id="Bullet" />
+                </behavior-type>
+            </behaviors>
+            <animation-folder>
+                <animation framecount="1" loop="0" name="Новая" pingpong="0" repeatcount="1" repeatto="0" sid="852822275088027" speed="5">
+                    <frame duration="1" hotspotX="0.503448" hotspotY="0.5" original-source="D:\Users\User\Desktop\1 Лига роботов\Cunstruct 2\1 урок\monster.png">
+                        <collision-poly>
+                            <point x="0.268966" y="0.39" />
+                            <point x="0.496552" y="0.24" />
+                            <point x="0.931035" y="0.1" />
+                            <point x="0.724138" y="0.5" />
+                            <point x="0.931035" y="0.9" />
+                            <point x="0.496552" y="0.75" />
+                            <point x="0.248276" y="0.64" />
+                            <point x="0.0206897" y="0.5" />
+                        </collision-poly>
+                    </frame>
+                </animation>
+            </animation-folder>
+        </object-type>
+        <object-type name="GameOver" sid="816687726442511">
+            <plugin id="Text" />
+        </object-type>
+        <object-type name="health" sid="523842347292481">
+            <plugin id="TiledBg" />
+            <instance-variables>
+                <instance-variable name="Health" sid="713684961169282" type="number" />
+            </instance-variables>
+            <texture original-source="D:\Users\User\Desktop\1 Лига роботов\Cunstruct 2\2 урок\life.png" />
+        </object-type>
+        <object-type name="Explosion" sid="458043671458188">
+            <plugin id="Sprite" />
+            <behaviors>
+                <behavior-type name="Fade" sid="203042487664377">
+                    <behavior id="Fade" />
+                </behavior-type>
+            </behaviors>
+            <animation-folder>
+                <animation framecount="1" loop="0" name="Новая" pingpong="0" repeatcount="1" repeatto="0" sid="717798509593716" speed="5">
+                    <frame duration="1" hotspotX="0.5" hotspotY="0.504951" original-source="D:\Users\User\Desktop\1 Лига роботов\Cunstruct 2\1 урок\explode.png" />
+                </animation>
+            </animation-folder>
+        </object-type>
+    </object-folder>
+    <families />
+    <layout-folder>
+        <layout>Уровень 1.xml</layout>
+    </layout-folder>
+    <event-folder>
+        <event-sheet>Лист событий 1.xml</event-sheet>
+    </event-folder>
+    <global-instances>
+        <global-instance type="Mouse" uid="2" />
+        <global-instance type="Keyboard" uid="3" />
+    </global-instances>
+    <sounds-folder />
+    <music-folder />
+    <files-folder>
+        <file-folder name="Icons">
+            <file name="icon-16.png" />
+            <file name="icon-32.png" />
+            <file name="icon-114.png" />
+            <file name="icon-128.png" />
+            <file name="icon-256.png" />
+            <file name="loading-logo.png" />
+        </file-folder>
+    </files-folder>
+</c2project>
