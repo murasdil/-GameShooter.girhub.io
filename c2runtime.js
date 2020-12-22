@@ -15218,6 +15218,57 @@ cr.system_object.prototype.loadFromJSON = function (o)
 	};
 })();
 cr.shaders = {};
+cr.shaders["hardlight"] = {src: ["varying mediump vec2 vTex;",
+"uniform lowp sampler2D samplerFront;",
+"uniform lowp sampler2D samplerBack;",
+"uniform mediump vec2 destStart;",
+"uniform mediump vec2 destEnd;",
+"void main(void)",
+"{",
+"lowp vec4 front = texture2D(samplerFront, vTex);",
+"lowp vec4 back = texture2D(samplerBack, mix(destStart, destEnd, vTex));",
+"if (front.r * 0.299 + front.g * 0.587 + front.b * 0.114 <= 0.5)",
+"{",
+"front *= back * 2.0;",
+"}",
+"else",
+"{",
+"front.rgb = 1.0 - ((1.0 - (2.0 * front.rgb - 1.0)) * (1.0 - back.rgb * front.a));",
+"}",
+"gl_FragColor = front;",
+"}"
+].join("\n"),
+	extendBoxHorizontal: 0,
+	extendBoxVertical: 0,
+	crossSampling: true,
+	preservesOpaqueness: false,
+	animated: false,
+	parameters: [] }
+cr.shaders["softlight"] = {src: ["precision mediump float;",
+"varying mediump vec2 vTex;",
+"uniform lowp sampler2D samplerFront;",
+"uniform lowp sampler2D samplerBack;",
+"uniform mediump vec2 destStart;",
+"uniform mediump vec2 destEnd;",
+"void main(void)",
+"{",
+"lowp vec4 front = texture2D(samplerFront, vTex);",
+"front.rgb /= front.a;",
+"lowp vec4 back = texture2D(samplerBack, mix(destStart, destEnd, vTex));",
+"back.rgb /= back.a;",
+"front.r = ((front.r < 0.5) ? (2.0 * back.r * front.r + back.r * back.r * (1.0 - 2.0 * front.r)) : (sqrt(back.r) * (2.0 * front.r - 1.0) + 2.0 * back.r * (1.0 - front.r)));",
+"front.g = ((front.g < 0.5) ? (2.0 * back.g * front.g + back.g * back.g * (1.0 - 2.0 * front.g)) : (sqrt(back.g) * (2.0 * front.g - 1.0) + 2.0 * back.g * (1.0 - front.g)));",
+"front.b = ((front.b < 0.5) ? (2.0 * back.b * front.b + back.b * back.b * (1.0 - 2.0 * front.b)) : (sqrt(back.b) * (2.0 * front.b - 1.0) + 2.0 * back.b * (1.0 - front.b)));",
+"front.rgb *= front.a;",
+"gl_FragColor = front * back.a;",
+"}"
+].join("\n"),
+	extendBoxHorizontal: 0,
+	extendBoxVertical: 0,
+	crossSampling: true,
+	preservesOpaqueness: false,
+	animated: false,
+	parameters: [] }
 ;
 ;
 cr.plugins_.Keyboard = function(runtime)
@@ -18682,6 +18733,170 @@ cr.behaviors.Fade = function(runtime)
 	};
 	behaviorProto.exps = new Exps();
 }());
+;
+;
+cr.behaviors.Pin = function(runtime)
+{
+	this.runtime = runtime;
+};
+(function ()
+{
+	var behaviorProto = cr.behaviors.Pin.prototype;
+	behaviorProto.Type = function(behavior, objtype)
+	{
+		this.behavior = behavior;
+		this.objtype = objtype;
+		this.runtime = behavior.runtime;
+	};
+	var behtypeProto = behaviorProto.Type.prototype;
+	behtypeProto.onCreate = function()
+	{
+	};
+	behaviorProto.Instance = function(type, inst)
+	{
+		this.type = type;
+		this.behavior = type.behavior;
+		this.inst = inst;				// associated object instance to modify
+		this.runtime = type.runtime;
+	};
+	var behinstProto = behaviorProto.Instance.prototype;
+	behinstProto.onCreate = function()
+	{
+		this.pinObject = null;
+		this.pinObjectUid = -1;		// for loading
+		this.pinAngle = 0;
+		this.pinDist = 0;
+		this.myStartAngle = 0;
+		this.theirStartAngle = 0;
+		this.lastKnownAngle = 0;
+		this.mode = 0;				// 0 = position & angle; 1 = position; 2 = angle; 3 = rope; 4 = bar
+		var self = this;
+		if (!this.recycled)
+		{
+			this.myDestroyCallback = (function(inst) {
+													self.onInstanceDestroyed(inst);
+												});
+		}
+		this.runtime.addDestroyCallback(this.myDestroyCallback);
+	};
+	behinstProto.saveToJSON = function ()
+	{
+		return {
+			"uid": this.pinObject ? this.pinObject.uid : -1,
+			"pa": this.pinAngle,
+			"pd": this.pinDist,
+			"msa": this.myStartAngle,
+			"tsa": this.theirStartAngle,
+			"lka": this.lastKnownAngle,
+			"m": this.mode
+		};
+	};
+	behinstProto.loadFromJSON = function (o)
+	{
+		this.pinObjectUid = o["uid"];		// wait until afterLoad to look up
+		this.pinAngle = o["pa"];
+		this.pinDist = o["pd"];
+		this.myStartAngle = o["msa"];
+		this.theirStartAngle = o["tsa"];
+		this.lastKnownAngle = o["lka"];
+		this.mode = o["m"];
+	};
+	behinstProto.afterLoad = function ()
+	{
+		if (this.pinObjectUid === -1)
+			this.pinObject = null;
+		else
+		{
+			this.pinObject = this.runtime.getObjectByUID(this.pinObjectUid);
+;
+		}
+		this.pinObjectUid = -1;
+	};
+	behinstProto.onInstanceDestroyed = function (inst)
+	{
+		if (this.pinObject == inst)
+			this.pinObject = null;
+	};
+	behinstProto.onDestroy = function()
+	{
+		this.pinObject = null;
+		this.runtime.removeDestroyCallback(this.myDestroyCallback);
+	};
+	behinstProto.tick = function ()
+	{
+	};
+	behinstProto.tick2 = function ()
+	{
+		if (!this.pinObject)
+			return;
+		if (this.lastKnownAngle !== this.inst.angle)
+			this.myStartAngle = cr.clamp_angle(this.myStartAngle + (this.inst.angle - this.lastKnownAngle));
+		var newx = this.inst.x;
+		var newy = this.inst.y;
+		if (this.mode === 3 || this.mode === 4)		// rope mode or bar mode
+		{
+			var dist = cr.distanceTo(this.inst.x, this.inst.y, this.pinObject.x, this.pinObject.y);
+			if ((dist > this.pinDist) || (this.mode === 4 && dist < this.pinDist))
+			{
+				var a = cr.angleTo(this.pinObject.x, this.pinObject.y, this.inst.x, this.inst.y);
+				newx = this.pinObject.x + Math.cos(a) * this.pinDist;
+				newy = this.pinObject.y + Math.sin(a) * this.pinDist;
+			}
+		}
+		else
+		{
+			newx = this.pinObject.x + Math.cos(this.pinObject.angle + this.pinAngle) * this.pinDist;
+			newy = this.pinObject.y + Math.sin(this.pinObject.angle + this.pinAngle) * this.pinDist;
+		}
+		var newangle = cr.clamp_angle(this.myStartAngle + (this.pinObject.angle - this.theirStartAngle));
+		this.lastKnownAngle = newangle;
+		if ((this.mode === 0 || this.mode === 1 || this.mode === 3 || this.mode === 4)
+			&& (this.inst.x !== newx || this.inst.y !== newy))
+		{
+			this.inst.x = newx;
+			this.inst.y = newy;
+			this.inst.set_bbox_changed();
+		}
+		if ((this.mode === 0 || this.mode === 2) && (this.inst.angle !== newangle))
+		{
+			this.inst.angle = newangle;
+			this.inst.set_bbox_changed();
+		}
+	};
+	function Cnds() {};
+	Cnds.prototype.IsPinned = function ()
+	{
+		return !!this.pinObject;
+	};
+	behaviorProto.cnds = new Cnds();
+	function Acts() {};
+	Acts.prototype.Pin = function (obj, mode_)
+	{
+		if (!obj)
+			return;
+		var otherinst = obj.getFirstPicked(this.inst);
+		if (!otherinst)
+			return;
+		this.pinObject = otherinst;
+		this.pinAngle = cr.angleTo(otherinst.x, otherinst.y, this.inst.x, this.inst.y) - otherinst.angle;
+		this.pinDist = cr.distanceTo(otherinst.x, otherinst.y, this.inst.x, this.inst.y);
+		this.myStartAngle = this.inst.angle;
+		this.lastKnownAngle = this.inst.angle;
+		this.theirStartAngle = otherinst.angle;
+		this.mode = mode_;
+	};
+	Acts.prototype.Unpin = function ()
+	{
+		this.pinObject = null;
+	};
+	behaviorProto.acts = new Acts();
+	function Exps() {};
+	Exps.prototype.PinnedUID = function (ret)
+	{
+		ret.set_int(this.pinObject ? this.pinObject.uid : -1);
+	};
+	behaviorProto.exps = new Exps();
+}());
 cr.getObjectRefTable = function () { return [
 	cr.plugins_.Keyboard,
 	cr.plugins_.Mouse,
@@ -18691,33 +18906,44 @@ cr.getObjectRefTable = function () { return [
 	cr.behaviors.EightDir,
 	cr.behaviors.Bullet,
 	cr.behaviors.Fade,
-	cr.system_object.prototype.cnds.IsGroupActive,
-	cr.plugins_.Keyboard.prototype.cnds.IsKeyDown,
-	cr.behaviors.EightDir.prototype.acts.SimulateControl,
+	cr.behaviors.Pin,
+	cr.system_object.prototype.cnds.OnLayoutStart,
+	cr.plugins_.Text.prototype.acts.SetVisible,
+	cr.plugins_.Sprite.prototype.acts.Destroy,
+	cr.plugins_.Sprite.prototype.acts.SetVisible,
 	cr.system_object.prototype.cnds.EveryTick,
-	cr.plugins_.Sprite.prototype.acts.SetTowardPosition,
-	cr.plugins_.Mouse.prototype.exps.X,
-	cr.plugins_.Mouse.prototype.exps.Y,
 	cr.plugins_.Sprite.prototype.acts.RotateTowardPosition,
 	cr.plugins_.Sprite.prototype.exps.X,
 	cr.plugins_.Sprite.prototype.exps.Y,
+	cr.plugins_.Sprite.prototype.acts.SetTowardPosition,
+	cr.plugins_.Mouse.prototype.exps.X,
+	cr.plugins_.Mouse.prototype.exps.Y,
 	cr.plugins_.TiledBg.prototype.acts.SetWidth,
+	cr.plugins_.Sprite.prototype.acts.AddInstanceVar,
 	cr.system_object.prototype.cnds.CompareVar,
-	cr.plugins_.Sprite.prototype.acts.Destroy,
-	cr.plugins_.Mouse.prototype.cnds.IsButtonDown,
-	cr.system_object.prototype.cnds.Every,
-	cr.plugins_.Sprite.prototype.acts.Spawn,
-	cr.behaviors.Bullet.prototype.acts.SetSpeed,
-	cr.system_object.prototype.cnds.OnLayoutStart,
-	cr.plugins_.Text.prototype.acts.SetVisible,
 	cr.plugins_.Sprite.prototype.cnds.OnCollision,
 	cr.plugins_.Sprite.prototype.acts.SubInstanceVar,
+	cr.plugins_.Sprite.prototype.acts.Spawn,
+	cr.plugins_.Sprite.prototype.acts.SetScale,
+	cr.system_object.prototype.cnds.IsGroupActive,
+	cr.plugins_.Keyboard.prototype.cnds.IsKeyDown,
+	cr.behaviors.EightDir.prototype.acts.SimulateControl,
+	cr.system_object.prototype.cnds.Every,
 	cr.system_object.prototype.acts.CreateObject,
-	cr.system_object.prototype.exps.layoutwidth,
 	cr.system_object.prototype.exps.layoutheight,
+	cr.system_object.prototype.exps.layoutangle,
 	cr.plugins_.Sprite.prototype.cnds.CompareInstanceVar,
 	cr.system_object.prototype.acts.SetGroupActive,
 	cr.system_object.prototype.acts.SetVar,
-	cr.plugins_.Keyboard.prototype.cnds.OnKey
+	cr.plugins_.Keyboard.prototype.cnds.OnKey,
+	cr.plugins_.Mouse.prototype.cnds.IsButtonDown,
+	cr.plugins_.Sprite.prototype.acts.RotateClockwise,
+	cr.system_object.prototype.exps.random,
+	cr.plugins_.Mouse.prototype.cnds.OnClick,
+	cr.behaviors.Bullet.prototype.acts.SetSpeed,
+	cr.behaviors.Pin.prototype.acts.Pin,
+	cr.plugins_.Mouse.prototype.cnds.OnObjectClicked,
+	cr.system_object.prototype.acts.RestartLayout,
+	cr.system_object.prototype.acts.ResetGlobals
 ];};
 
